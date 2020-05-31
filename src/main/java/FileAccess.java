@@ -22,12 +22,15 @@ public class FileAccess {
     public FileAccess(String containerName) {
         Configuration configuration = new Configuration();
         configuration.set("dfs.client.use.datanode.hostname", "true");
+        configuration.set("dfs.support.append", "true");
+        configuration.set("dfs.replication", "1");
         System.setProperty("HADOOP_USER_NAME", "root");
 
         try {
             hdfs = FileSystem.get(
                     new URI("hdfs://" + containerName + ":8020"), configuration
             );
+
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
         }
@@ -40,6 +43,7 @@ public class FileAccess {
      */
     public void create(String path) {
         Path hdfsPath = new Path(path);
+
         try {
             hdfs.create(hdfsPath);
         } catch (IOException e) {
@@ -57,13 +61,28 @@ public class FileAccess {
 
         Path hdfsPath = new Path(path);
         FSDataOutputStream fileOutputStream = null;
+        StringBuilder builder = new StringBuilder();
+
+
         try {
             if (hdfs.exists(hdfsPath)) {
-                fileOutputStream = hdfs.append(hdfsPath);
-                fileOutputStream.writeBytes(content);
-            } else {
+                hdfs.setReplication(hdfsPath, (short) 1);
+
+                String tempFilePath = path + "temp";
+                String contentFromExistedFile = read(path);
+                builder.append(contentFromExistedFile).append(content);
+
+                hdfs.delete(hdfsPath, true);
+
                 fileOutputStream = hdfs.create(hdfsPath);
+                fileOutputStream.writeBytes(builder.toString());
+
+            } else {
+
+                fileOutputStream = hdfs.create(hdfsPath);
+                hdfs.setReplication(hdfsPath, (short) 1);
                 fileOutputStream.writeBytes(content);
+
             }
         } finally {
 
@@ -71,7 +90,6 @@ public class FileAccess {
                 fileOutputStream.close();
             }
         }
-
     }
 
     /**

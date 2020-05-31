@@ -4,19 +4,23 @@ import java.util.List;
 public class TestMain {
     public static void main(String[] args) throws IOException {
 
-        FileAccess fileAccess = new FileAccess("ab89c2a3df9c");
+        FileAccess fileAccess = new FileAccess("1e69e151014c");
 
-//        fileAccess.create("/test/text.txt");
+        String filePath = "/test/text.txt";
 
-        fileAccess.append("/test/text.txt", "some content some content more");
+        fileAccess.create(filePath);
 
-        String read = fileAccess.read("/test/text.txt");
+        fileAccess.append(filePath, "some content");
+        fileAccess.append(filePath, " and a bit more content");
+        fileAccess.append(filePath, " and last one just to test");
+
+        String read = fileAccess.read(filePath);
         System.out.println(read);
 
-        fileAccess.delete("/test/text.txt");
+        fileAccess.delete(filePath);
+
         fileAccess.create("/test/text1.txt");
         fileAccess.create("/test/text2.txt");
-
 
         List<String> list = fileAccess.list("/test/");
         for (String s : list) {
@@ -25,6 +29,12 @@ public class TestMain {
 
         System.out.println(fileAccess.isDirectory("/test/"));
         System.out.println(fileAccess.isDirectory("/test/text1.txt"));
+
+
+        fileAccess.append("/test/text3.txt", "some content for nonexisted file text3.txt");
+
+        System.out.println(fileAccess.read("/test/text3.txt"));
+
 
     }
 }
